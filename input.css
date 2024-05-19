@@ -1,0 +1,104 @@
+*{
+    font-family: sans-serif;
+}
+.quiz-container{
+    position: relative;
+    border: none;
+    top: 70px;
+    padding: 20px 10px 10px 10px;
+    height: fit-content;
+    width: fit-content;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+    background-color: #fff;
+    justify-content: center;
+    text-align: center;
+}
+.q-title{
+    color: #512da8;
+    font-size: 2rem;
+}
+
+.quiz-maker{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    width: 600px;
+    background-color: #fff;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 40px;
+    transition: all .6s ease-in-out;
+}
+.quiz-maker input{
+    background-color: #eee;
+    border: none;
+    margin: 8px 0;
+    padding: 10px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+    color: #161414;
+}
+.tarea{
+    color: #161414;
+    resize: none;
+    background-color: #eee;
+    border: none;
+    margin: 8px 0;
+    padding: 10px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+}
+.select{
+    background-color: #eee;
+    color: #161414;
+    margin: 8px 0;
+    padding: 5px;
+    height: 30px;
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+}
+option{
+    background-color: #fff;
+ }
+.title-1{
+    color: #512da8;
+    font-size: 1em;
+    font-weight: 505;
+}
+.qm-button{
+    background-color: #512da8;
+    color: #fff;
+    font-size: 12px;
+    padding: 10px 45px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: all .2s ease-in-out;
+}
+.qm-button:hover{
+    color: #512da8;
+    background-color: transparent;
+    border: 1px solid #512da8;
+}
+
+@media screen and (max-width: 480px){
+    .quiz-container{
+        width: 100%;
+    }
+    .quiz-maker{
+        width: 100%;
+        padding: 10px 10px;
+    }
+
+}
