@@ -1,3 +1,15 @@
+<?php
+include_once 'dbConnection.php';
+session_start();
+
+if (!(isset($_SESSION['email']))) {
+    header("location:index.php");
+    exit();
+}
+
+$name = $_SESSION['name'];
+$email = $_SESSION['email'];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,10 +27,6 @@ if (@$_GET['w']) {
 ?>
 
 </head>
-<?php
-include_once 'dbConnection.php';
-session_start();
-?>
 <body>
 
 <nav class="navbar">
@@ -29,26 +37,19 @@ session_start();
           <span class="glyphicon glyphicon-home" aria-hidden="true"></span>&nbsp;Home
         </a>
     </li>
-    <li <?php if (@$_GET['q']==2) echo 'class="active"'; ?>>
+    <li <?php if (@$_GET['q']==2) echo 'class="active"'; ?> >
         <a href="profile.php?q=2">
           <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>&nbsp;History
         </a>
     </li>
-    <li <?php if (@$_GET['q']==3) echo 'class="active"'; ?>>
+    <li <?php if (@$_GET['q']==3) echo 'class="active"'; ?> >
         <a href="profile.php?q=3">
           <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>&nbsp;Ranking
         </a>
     </li>
     </span>
     <?php
-    if (!(isset($_SESSION['email']))) {
-        header("location:index.php");
-        exit();
-    } else {
-        $name = $_SESSION['name'];
-        $email = $_SESSION['email'];
         echo '<span class="nav-right"><p>'.htmlspecialchars($name).'</p><p><a href="logout.php?q=profile.php">Log out</a></p></span>';
-    }
     ?>
 </nav>
 
@@ -170,27 +171,25 @@ if (@$_GET['q'] == 2) {
     while ($row = pg_fetch_assoc($q)) {
         $eid = htmlspecialchars($row['eid']);
         $score = (int)$row['score'];
+        $correct = (int)$row['sahi'];
         $wrong = (int)$row['wrong'];
-        $sahi = (int)$row['sahi'];
         $level = (int)$row['level'];
         $date = htmlspecialchars($row['date']);
 
-        $qz = pg_query_params($conn, "SELECT title FROM quiz WHERE eid = $1", [$eid]);
-        if ($qz) {
-            $qz_row = pg_fetch_assoc($qz);
-            $title = htmlspecialchars($qz_row['title']);
-        } else {
-            $title = "Unknown";
+        $q1 = pg_query_params($conn, "SELECT title FROM quiz WHERE eid = $1", [$eid]);
+        if (!$q1) { die('Error: ' . pg_last_error()); }
+
+        $title = '';
+        if ($row1 = pg_fetch_assoc($q1)) {
+            $title = htmlspecialchars($row1['title']);
         }
 
-        echo '<tr><td>'.$c++.'</td><td>'.$title.'</td><td>'.$level.'</td><td>'.$sahi.'</td><td>'.$wrong.'</td><td>'.$score.'</td><td>'.$date.'</td></tr>';
+        echo '<tr><td>'.$c++.'</td><td>'.$title.'</td><td>'.$level.'</td><td>'.$correct.'</td><td>'.$wrong.'</td><td>'.$score.'</td><td>'.$date.'</td></tr>';
     }
     echo '</table></div>';
 }
 // history end
-?>
 
-<?php
 // ranking start
 if (@$_GET['q'] == 3) {
     $q = pg_query($conn, "SELECT * FROM rank ORDER BY score DESC");
@@ -203,14 +202,14 @@ if (@$_GET['q'] == 3) {
     while ($row = pg_fetch_assoc($q)) {
         $name = htmlspecialchars($row['name']);
         $score = (int)$row['score'];
-
         echo '<tr><td>'.$c++.'</td><td>'.$name.'</td><td>'.$score.'</td></tr>';
     }
     echo '</table></div>';
 }
+// ranking end
 ?>
 
-</div> <!-- main container -->
+</div>
 
 </body>
 </html>
