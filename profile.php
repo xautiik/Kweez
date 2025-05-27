@@ -2,7 +2,7 @@
 include_once 'dbConnection.php';
 session_start();
 
-if (!(isset($_SESSION['email']))) {
+if (!isset($_SESSION['email'])) {
     header("location:index.php");
     exit();
 }
@@ -21,8 +21,8 @@ $email = $_SESSION['email'];
   <link rel="stylesheet" href="style.css"> 
 
 <?php 
-if (@$_GET['w']) {
-    echo '<script>alert("'.htmlspecialchars($_GET['w']).'");</script>';
+if (isset($_GET['w'])) {
+    echo '<script>alert("' . htmlspecialchars($_GET['w']) . '");</script>';
 }
 ?>
 
@@ -32,17 +32,17 @@ if (@$_GET['w']) {
 <nav class="navbar">
     <h1>Kweez</h1>
     <span class="navigation"> 
-    <li <?php if (@$_GET['q']==1) echo 'class="active"'; ?> >
+    <li <?php if (isset($_GET['q']) && $_GET['q'] == 1) echo 'class="active"'; ?> >
         <a href="profile.php?q=1">
           <span class="glyphicon glyphicon-home" aria-hidden="true"></span>&nbsp;Home
         </a>
     </li>
-    <li <?php if (@$_GET['q']==2) echo 'class="active"'; ?> >
+    <li <?php if (isset($_GET['q']) && $_GET['q'] == 2) echo 'class="active"'; ?> >
         <a href="profile.php?q=2">
           <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>&nbsp;History
         </a>
     </li>
-    <li <?php if (@$_GET['q']==3) echo 'class="active"'; ?> >
+    <li <?php if (isset($_GET['q']) && $_GET['q'] == 3) echo 'class="active"'; ?> >
         <a href="profile.php?q=3">
           <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>&nbsp;Ranking
         </a>
@@ -55,84 +55,100 @@ if (@$_GET['w']) {
 
 <div class="main-container">
 
-<?php 
-if (@$_GET['q'] == 1) {
-    $result = pg_query($con, "SELECT * FROM quiz ORDER BY date DESC");
-    if (!$result) { die('Error: ' . pg_last_error()); }
+<?php
+// Helper function to safely get GET params
+function getParam($key) {
+    return isset($_GET[$key]) ? $_GET[$key] : null;
+}
+
+$q = getParam('q');
+
+// Home - show quizzes
+if ($q == 1) {
+    $stmt = $con->prepare("SELECT * FROM quiz ORDER BY date DESC");
+    if (!$stmt->execute()) {
+        die('Error: ' . implode(' | ', $stmt->errorInfo()));
+    }
+    $quizzes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo '<div class="table-container"><table class="table">
     <tr><th><p>No.</p></th><th><p>Quiz</p></th><th><p>Total Questions</p></th><th><p>Result</p></th><th></th></tr>';
 
     $c = 1;
-    while ($row = pg_fetch_assoc($result)) {
+    foreach ($quizzes as $row) {
         $title = htmlspecialchars($row['title']);
         $total = (int)$row['total'];
         $sahi = (int)$row['sahi'];
-        $eid = htmlspecialchars($row['eid']);
+        $eid = $row['eid'];
 
-        $esc_email = pg_escape_string($con, $email);
-        $esc_eid = pg_escape_string($con, $eid);
-
-        $q12 = pg_query_params($con, "SELECT score FROM history WHERE eid = $1 AND email = $2", [$esc_eid, $esc_email]);
-        if (!$q12) { die('Error: ' . pg_last_error()); }
-
-        $rowcount = pg_num_rows($q12);
+        // Check if user already took this quiz
+        $stmt2 = $con->prepare("SELECT score FROM history WHERE eid = ? AND email = ?");
+        if (!$stmt2->execute([$eid, $email])) {
+            die('Error: ' . implode(' | ', $stmt2->errorInfo()));
+        }
+        $rowcount = $stmt2->rowCount();
 
         if ($rowcount == 0) {
-            echo '<tr><td>'.$c++.'</td><td>'.$title.'</td><td>'.$total.'</td><td>'.$sahi * $total.'</td>
+            echo '<tr><td>'.$c++.'</td><td>'.$title.'</td><td>'.$total.'</td><td>'.($sahi * $total).'</td>
             <td><b><a style="text-decoration: none;" href="profile.php?q=quiz&step=2&eid='.$eid.'&n=1&t='.$total.'">&nbsp;<span class="start"><b>Start</b></span></a></b></td></tr>';
         } else {
-            echo '<tr><td>'.$c++.'</td><td>'.$title.'&nbsp;<span title="This quiz is already solved by you"></span></td><td>'.$total.'</td><td>'.$sahi * $total.'</td>
+            echo '<tr><td>'.$c++.'</td><td>'.$title.'&nbsp;<span title="This quiz is already solved by you"></span></td><td>'.$total.'</td><td>'.($sahi * $total).'</td>
             <td style="font-size: 1rem; font-weight: 600;"><b><a style="text-decoration: none;" href="update.php?q=quizre&step=25&eid='.$eid.'&n=1&t='.$total.'"><span class="restart"><b>Retake</b></span></a></b></td></tr>';
         }
     }
     echo '</table></div>';
 }
-?>
 
-<!-- quiz start -->
-<?php
-if (@$_GET['q'] == 'quiz' && @$_GET['step'] == 2) {
-    $eid = pg_escape_string($con, $_GET['eid']);
-    $sn = (int)$_GET['n'];
-    $total = (int)$_GET['t'];
+// Quiz start
+if ($q == 'quiz' && getParam('step') == 2) {
+    $eid = getParam('eid');
+    $sn = (int)getParam('n');
+    $total = (int)getParam('t');
 
-    $q = pg_query_params($con, "SELECT * FROM questions WHERE eid = $1 AND sn = $2", [$eid, $sn]);
-    if (!$q) { die('Error: ' . pg_last_error()); }
+    $stmt = $con->prepare("SELECT * FROM questions WHERE eid = ? AND sn = ?");
+    if (!$stmt->execute([$eid, $sn])) {
+        die('Error: ' . implode(' | ', $stmt->errorInfo()));
+    }
 
     echo '<div class="quiz">';
-    while ($row = pg_fetch_assoc($q)) {
-        $qns = htmlspecialchars($row['qns']);
-        $qid = $row['qid'];
+    $question = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($question) {
+        $qns = htmlspecialchars($question['qns']);
+        $qid = $question['qid'];
         echo '<p class="question" style="color: #512da8; font-size: 1.25rem; font-weight: 600; margin-bottom:10px;">Question &nbsp;'.$sn.'</p><br /><p class="quest-r" style="color: #000; font-size: 1.2rem; font-weight: 600;">&nbsp'.$qns.'</p><br /><br />';
     }
 
-    $q_opts = pg_query_params($con, "SELECT * FROM options WHERE qid = $1", [$qid]);
-    if (!$q_opts) { die('Error: ' . pg_last_error()); }
+    $stmt_opts = $con->prepare("SELECT * FROM options WHERE qid = ?");
+    if (!$stmt_opts->execute([$qid])) {
+        die('Error: ' . implode(' | ', $stmt_opts->errorInfo()));
+    }
 
     echo '<form class="q-form" action="update.php?q=quiz&step=2&eid='.$eid.'&n='.$sn.'&t='.$total.'&qid='.$qid.'" method="POST" style="font-size: 1rem; font-weight: 550; margin: 0 15px 0 5px;">
     <br />';
 
-    while ($row = pg_fetch_assoc($q_opts)) {
-        $option = htmlspecialchars($row['option']);
-        $optionid = $row['optionid'];
+    $options = $stmt_opts->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($options as $opt) {
+        $option = htmlspecialchars($opt['option']);
+        $optionid = $opt['optionid'];
         echo '<input class="radio" type="radio" name="ans" value="'.$optionid.'"><p class="option">'.$option.'</p><br /><br />';
     }
     echo '<br /><button class="q-submit" type="submit">Submit</button></form></div>';
 }
 
-// result display
-if (@$_GET['q'] == 'result' && @$_GET['eid']) {
-    $eid = pg_escape_string($con, $_GET['eid']);
-    $esc_email = pg_escape_string($con, $email);
+// Result display
+if ($q == 'result' && getParam('eid')) {
+    $eid = getParam('eid');
 
-    $q = pg_query_params($con, "SELECT * FROM history WHERE eid = $1 AND email = $2", [$eid, $esc_email]);
-    if (!$q) { die('Error: ' . pg_last_error()); }
+    $stmt = $con->prepare("SELECT * FROM history WHERE eid = ? AND email = ?");
+    if (!$stmt->execute([$eid, $email])) {
+        die('Error: ' . implode(' | ', $stmt->errorInfo()));
+    }
 
     echo '<div class="table-container">
     <center><h1 style="color: #512da8">Result</h1></center><br /><table class="table">';
 
-    while ($row = pg_fetch_assoc($q)) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $s = (int)$row['score'];
         $w = (int)$row['wrong'];
         $r = (int)$row['sahi'];
@@ -144,72 +160,67 @@ if (@$_GET['q'] == 'result' && @$_GET['eid']) {
               <tr style="color: #512da8; font-size: 1rem; font-weight: 550;"><td>Score</td><td>'.$s.'</td></tr>';
     }
 
-    $q_rank = pg_query_params($con, "SELECT * FROM rank WHERE email = $1", [$esc_email]);
-    if (!$q_rank) { die('Error: ' . pg_last_error()); }
+    $stmt_rank = $con->prepare("SELECT * FROM rank WHERE email = ?");
+    if (!$stmt_rank->execute([$email])) {
+        die('Error: ' . implode(' | ', $stmt_rank->errorInfo()));
+    }
 
-    while ($row = pg_fetch_assoc($q_rank)) {
+    while ($row = $stmt_rank->fetch(PDO::FETCH_ASSOC)) {
         $s = (int)$row['score'];
         echo '<tr style="color: #512da8; font-size: 1rem; font-weight: 550;"><td>Overall Score</td><td>'.$s.'</td></tr>';
     }
 
     echo '</table></div>';
 }
-?>
-<!-- quiz end -->
 
-<?php
-// history start
-if (@$_GET['q'] == 2) {
-    $esc_email = pg_escape_string($con, $email);
-    $q = pg_query_params($con, "SELECT * FROM history WHERE email = $1 ORDER BY date DESC", [$esc_email]);
-    if (!$q) { die('Error: ' . pg_last_error()); }
+// History
+if ($q == 2) {
+    $stmt = $con->prepare("SELECT * FROM history WHERE email = ? ORDER BY date DESC");
+    if (!$stmt->execute([$email])) {
+        die('Error: ' . implode(' | ', $stmt->errorInfo()));
+    }
 
     echo '<div class="table-container"><table class="table">
-    <tr><th><p>No.</p></th><th><p>Quiz</p></th><th><p>Question Solved</p></th><th><p>Right</p></th><th><p>Wrong</p></th><th><p>Score</p></th><th><p>Date</p></th></tr>';
+          <tr><th><p>No.</p></th><th><p>Quiz</p></th><th><p>Question Solved</p></th><th><p>Right</p></th><th><p>Wrong</p></th><th><p>Score</p></th><th><p>Date</p></th></tr>';
 
     $c = 1;
-    while ($row = pg_fetch_assoc($q)) {
-        $eid = htmlspecialchars($row['eid']);
-        $score = (int)$row['score'];
-        $correct = (int)$row['sahi'];
-        $wrong = (int)$row['wrong'];
-        $level = (int)$row['level'];
-        $date = htmlspecialchars($row['date']);
-
-        $q1 = pg_query_params($con, "SELECT title FROM quiz WHERE eid = $1", [$eid]);
-        if (!$q1) { die('Error: ' . pg_last_error()); }
-
-        $title = '';
-        if ($row1 = pg_fetch_assoc($q1)) {
-            $title = htmlspecialchars($row1['title']);
-        }
-
-        echo '<tr><td>'.$c++.'</td><td>'.$title.'</td><td>'.$level.'</td><td>'.$correct.'</td><td>'.$wrong.'</td><td>'.$score.'</td><td>'.$date.'</td></tr>';
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        echo '<tr>
+              <td>'.$c++.'</td>
+              <td>'.htmlspecialchars($row['eid']).'</td>
+              <td>'.$row['level'].'</td>
+              <td>'.$row['sahi'].'</td>
+              <td>'.$row['wrong'].'</td>
+              <td>'.$row['score'].'</td>
+              <td>'.$row['date'].'</td>
+              </tr>';
     }
     echo '</table></div>';
 }
-// history end
 
-// ranking start
-if (@$_GET['q'] == 3) {
-    $q = pg_query($con, "SELECT * FROM rank ORDER BY score DESC");
-    if (!$q) { die('Error: ' . pg_last_error()); }
+// Ranking
+if ($q == 3) {
+    $stmt = $con->prepare("SELECT * FROM rank ORDER BY score DESC");
+    if (!$stmt->execute()) {
+        die('Error: ' . implode(' | ', $stmt->errorInfo()));
+    }
 
     echo '<div class="table-container"><table class="table">
-    <tr><th><p>Rank</p></th><th><p>Name</p></th><th><p>Score</p></th></tr>';
+          <tr><th><p>Rank</p></th><th><p>Name</p></th><th><p>Email</p></th><th><p>Score</p></th></tr>';
 
     $c = 1;
-    while ($row = pg_fetch_assoc($q)) {
-        $name = htmlspecialchars($row['name']);
-        $score = (int)$row['score'];
-        echo '<tr><td>'.$c++.'</td><td>'.$name.'</td><td>'.$score.'</td></tr>';
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        echo '<tr>
+              <td>'.$c++.'</td>
+              <td>'.htmlspecialchars($row['name']).'</td>
+              <td>'.htmlspecialchars($row['email']).'</td>
+              <td>'.$row['score'].'</td>
+              </tr>';
     }
     echo '</table></div>';
 }
-// ranking end
 ?>
 
 </div>
-
 </body>
 </html>
