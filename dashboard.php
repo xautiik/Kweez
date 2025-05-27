@@ -1,3 +1,16 @@
+<?php
+session_start();
+include_once 'dbConnection.php';
+
+$email = $_SESSION['email'] ?? null;
+
+if (!$email) {
+    header("Location: index.php");
+    exit();
+}
+
+$name = $_SESSION['name'] ?? '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,19 +55,7 @@
     </span>
     
 <?php
-include_once 'dbConnection.php';
-session_start();
-
-$email = $_SESSION['email'] ?? null;
-
-if (!$email) {
-    header("location:index.php");
-    exit();
-} else {
-    $name = $_SESSION['name'];
-    
     echo '<span class="nav-right"><p>' . htmlspecialchars($name) . '</p>&nbsp;&nbsp;<p><a href="logout.php?q=dashboard.php">&nbsp;Signout</a></p></span>';
-}
 ?>
 </nav>
 <!--navigation menu closed-->
