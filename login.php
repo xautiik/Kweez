@@ -6,21 +6,19 @@ if (isset($_SESSION["email"])) {
 }
 
 include_once 'dbConnection.php'; 
-$ref = @$_GET['q'];
-$email = trim($_POST['email']);
-$password = $_POST['password'];
 
-$conn = pg_connect("host=localhost dbname=your_db user=your_user password=your_password");
-if (!$conn) {
-    die("Error in connection: " . pg_last_error());
-}
+$ref = $_GET['q'] ?? 'index.php'; 
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
 
-$result = pg_query_params($conn, "SELECT name, password FROM user WHERE email = $1", array($email));
+try {
+    $stmt = $con->prepare('SELECT name, password FROM "user" WHERE email = :email');
+    $stmt->execute(['email' => $email]);
 
-if (pg_num_rows($result) == 1) {
-    $row = pg_fetch_assoc($result);
-    if (password_verify($password, $row['password'])) {
-        $_SESSION["name"] = $row['name'];
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && password_verify($password, $user['password'])) {
+        $_SESSION["name"] = $user['name'];
         $_SESSION["email"] = $email;
         header("location: profile.php?q=1");
         exit();
@@ -28,10 +26,7 @@ if (pg_num_rows($result) == 1) {
         header("location: $ref?w=Wrong Username or Password");
         exit();
     }
-} else {
-    header("location: $ref?w=Wrong Username or Password");
-    exit();
+} catch (PDOException $e) {
+    die("Database error: " . $e->getMessage());
 }
-
-pg_close($conn);
 ?>
