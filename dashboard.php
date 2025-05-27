@@ -2,14 +2,14 @@
 session_start();
 include_once 'dbConnection.php';
 
-$email = $_SESSION['email'] ?? null;
+// Safely access session values with fallback
+$email = $_SESSION['email'] ?? '';
+$name = $_SESSION['name'] ?? '';
 
-if (!$email) {
+if (empty($email)) {
     header("Location: index.php");
     exit();
 }
-
-$name = $_SESSION['name'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -47,14 +47,13 @@ $name = $_SESSION['name'] ?? '';
     </span>
     
     <span class="nav-right">
-        <p><?= htmlspecialchars($name) ?></p>&nbsp;&nbsp;<p><a href="logout.php?q=dashboard.php">&nbsp;Signout</a></p>
+        <p><?= htmlspecialchars((string)$name) ?></p>&nbsp;&nbsp;<p><a href="logout.php?q=dashboard.php">&nbsp;Signout</a></p>
     </span>
 </nav>
 
 <div class="main-container">
 
 <?php if (@$_GET['q'] == 0) {
-    // Get all quizzes ordered by date descending
     $stmt = $con->prepare("SELECT * FROM quiz ORDER BY date DESC");
     $stmt->execute();
     $quizzes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -69,7 +68,6 @@ $name = $_SESSION['name'] ?? '';
         $sahi = (int)$row['sahi'];
         $eid = $row['eid'];
 
-        // Check if user already has score for this quiz
         $stmt2 = $con->prepare("SELECT score FROM history WHERE eid = ? AND email = ?");
         $stmt2->execute([$eid, $email]);
         $rowcount = $stmt2->rowCount();
@@ -85,7 +83,6 @@ $name = $_SESSION['name'] ?? '';
     echo '</table></div>';
 }
 
-// Ranking page
 if (@$_GET['q'] == 2) {
     $stmt = $con->prepare("SELECT * FROM rank ORDER BY score DESC");
     $stmt->execute();
@@ -101,7 +98,7 @@ if (@$_GET['q'] == 2) {
         $stmt2 = $con->prepare("SELECT name FROM user WHERE email = ?");
         $stmt2->execute([$e]);
         $user = $stmt2->fetch(PDO::FETCH_ASSOC);
-        $nameRank = $user ? htmlspecialchars($user['name']) : '';
+        $nameRank = $user ? htmlspecialchars((string)$user['name']) : '';
 
         $c++;
         echo '<tr><td><p>' . $c . '</p></td><td>' . $nameRank . '</td><td>' . $s . '</td></tr>';
@@ -109,7 +106,6 @@ if (@$_GET['q'] == 2) {
     echo '</table></div>';
 }
 
-// Users page
 if (@$_GET['q'] == 1) {
     $stmt = $con->prepare("SELECT * FROM user");
     $stmt->execute();
@@ -118,16 +114,14 @@ if (@$_GET['q'] == 1) {
     echo '<div class="table-container"><table class="table"><tr><th><p>S.N.</p></th><th><p>Name</p></th><th><p>Email</p></th><th></th></tr>';
     $c = 1;
     foreach ($users as $row) {
-        $nameUser = htmlspecialchars($row['name']);
-        $emailUser = htmlspecialchars($row['email']);
+        $nameUser = htmlspecialchars((string)$row['name']);
+        $emailUser = htmlspecialchars((string)$row['email']);
         echo '<tr><td>' . $c++ . '</td><td>' . $nameUser . '</td><td>' . $emailUser . '</td>
         <td><a title="Delete User" style="text-decoration: none;" href="update.php?demail=' . urlencode($emailUser) . '"><b><span class="remove">Delete</span></b></a></td></tr>';
     }
     echo '</table></div>';
 }
 ?>
-
-<!-- Add quiz and remove quiz sections remain the same -->
 
 </div> <!-- main-container end -->
 
