@@ -19,7 +19,7 @@ $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
 try {
     // Check if email already exists
-    $stmt = $con->prepare("SELECT email FROM \"user\" WHERE email = :email");
+    $stmt = $con->prepare('SELECT email FROM "user" WHERE email = :email');
     $stmt->execute(['email' => $email]);
     if ($stmt->rowCount() > 0) {
         header("location:index.php?q7=Email Already Registered!!!");
@@ -27,7 +27,7 @@ try {
     }
 
     // Insert new user
-    $insert_stmt = $con->prepare("INSERT INTO \"user\" (name, email, password) VALUES (:name, :email, :password)");
+    $insert_stmt = $con->prepare('INSERT INTO "user" (name, email, password) VALUES (:name, :email, :password)');
     $result = $insert_stmt->execute([
         'name' => $name,
         'email' => $email,
