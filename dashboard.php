@@ -55,7 +55,19 @@ $name = $_SESSION['name'] ?? '';
     </span>
     
 <?php
+include_once 'dbConnection.php';
+session_start();
+
+$email = $_SESSION['email'] ?? null;
+
+if (!$email) {
+    header("location:index.php");
+    exit();
+} else {
+    $name = $_SESSION['name'];
+    
     echo '<span class="nav-right"><p>' . htmlspecialchars($name) . '</p>&nbsp;&nbsp;<p><a href="logout.php?q=dashboard.php">&nbsp;Signout</a></p></span>';
+}
 ?>
 </nav>
 <!--navigation menu closed-->
@@ -65,7 +77,7 @@ $name = $_SESSION['name'] ?? '';
 
 <?php if (@$_GET['q'] == 0) {
 
-    $result = pg_query($conn, "SELECT * FROM quiz ORDER BY date DESC") or die('Error');
+    $result = pg_query($con, "SELECT * FROM quiz ORDER BY date DESC") or die('Error');
 
     echo '<div class="table-container"><table class="table">
     <tr><th><p>No.</p></th><th><p>Quiz</p></th><th><p>Total Questions</p></th><th><p>Marks</p></th><th></th></tr>';
@@ -78,7 +90,7 @@ $name = $_SESSION['name'] ?? '';
         $eid = $row['eid'];
 
         
-        $q12 = pg_query_params($conn, "SELECT score FROM history WHERE eid=$1 AND email=$2", array($eid, $email)) or die('Error98');
+        $q12 = pg_query_params($con, "SELECT score FROM history WHERE eid=$1 AND email=$2", array($eid, $email)) or die('Error98');
         $rowcount = pg_num_rows($q12);
 
         if ($rowcount == 0) {
@@ -95,7 +107,7 @@ $name = $_SESSION['name'] ?? '';
 
 //ranking start
 if (@$_GET['q'] == 2) {
-    $q = pg_query($conn, "SELECT * FROM rank ORDER BY score DESC") or die('Error223');
+    $q = pg_query($con, "SELECT * FROM rank ORDER BY score DESC") or die('Error223');
 
     echo '<div class="table-container"><table class="table"><tr><th><p>Rank</p></th><th><p>Name</p></th><th><p>Score</p></th></tr>';
     $c = 0;
@@ -104,7 +116,7 @@ if (@$_GET['q'] == 2) {
         $e = $row['email'];
         $s = $row['score'];
 
-        $q12 = pg_query_params($conn, "SELECT * FROM user WHERE email=$1", array($e)) or die('Error231');
+        $q12 = pg_query_params($con, "SELECT * FROM user WHERE email=$1", array($e)) or die('Error231');
         $name = '';
         if ($row2 = pg_fetch_assoc($q12)) {
             $name = htmlspecialchars($row2['name']);
@@ -119,7 +131,7 @@ if (@$_GET['q'] == 2) {
 
 <!--users start-->
 <?php if (@$_GET['q'] == 1) {
-    $result = pg_query($conn, "SELECT * FROM user") or die('Error');
+    $result = pg_query($con, "SELECT * FROM user") or die('Error');
 
     echo '<div class="table-container"><table class="table"><tr><th><p>S.N.</p></th><th><p>Name</p></th><th><p>Email</p></th><th></th></tr>';
     $c = 1;
@@ -160,7 +172,7 @@ if (@$_GET['q'] == 4 && (@$_GET['step']) == 2) {
     <div class="quiz-container">
     <span class="q-title"><b>Add Questions</b></span><br /><br />
     <form class="quiz-maker" name="form" action="update.php?q=addqns&n=' . intval(@$_GET['n']) . '&eid=' . htmlspecialchars(@$_GET['eid']) . '&ch=4" method="POST">';
-     
+
     for ($i = 1; $i <= intval(@$_GET['n']); $i++) {
         echo '<b class="title-1">Question No.&nbsp;' . $i . '&nbsp;:</b><br />
         <textarea rows="3" cols="5" name="qns' . $i . '" class="tarea" placeholder="Write question number ' . $i . ' here..."></textarea>  
@@ -188,7 +200,7 @@ if (@$_GET['q'] == 4 && (@$_GET['step']) == 2) {
 
 <!--remove quiz-->
 <?php if (@$_GET['q'] == 5) {
-    $result = pg_query($conn, "SELECT * FROM quiz ORDER BY date DESC") or die('Error');
+    $result = pg_query($con, "SELECT * FROM quiz ORDER BY date DESC") or die('Error');
     echo '<div class="table-container"><table class="table">
     <tr><th><p>No.</p></th><th><p>Quiz</p></th><th><p>Total Questions</p></th><th><p>Marks</p></th><th></th></tr>';
     $c = 1;
@@ -197,17 +209,17 @@ if (@$_GET['q'] == 4 && (@$_GET['step']) == 2) {
         $total = (int)$row['total'];
         $sahi = (int)$row['sahi'];
         $eid = $row['eid'];
+
         echo '<tr><td>' . $c++ . '</td><td>' . $title . '</td><td>' . $total . '</td><td>' . ($sahi * $total) . '</td>
-        <td><b><a style="text-decoration: none;" href="update.php?q=rmquiz&eid=' . urlencode($eid) . '"><span class="remove"><b>Remove</b></span></a></b></td></tr>';
+        <td><a title="Delete Quiz" href="update.php?q=rmquiz&eid=' . urlencode($eid) . '"><b><span class="remove">Delete</span></b></a></td></tr>';
     }
-    echo '</table></div></div>';
+    echo '</table></div>';
 }
 ?>
+<!--remove quiz-->
 
-</div><!--container closed-->
+</div> <!-- main-container end -->
 
 </body>
-<!--<footer>
-<span class="foot"><a href=""><h2>Admin Login</h2></a>&nbsp||&nbsp<h2>Kayodee</h2></span>
-</footer>-->
 </html>
+
