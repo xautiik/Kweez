@@ -57,7 +57,7 @@ if (@$_GET['w']) {
 
 <?php 
 if (@$_GET['q'] == 1) {
-    $result = pg_query($conn, "SELECT * FROM quiz ORDER BY date DESC");
+    $result = pg_query($con, "SELECT * FROM quiz ORDER BY date DESC");
     if (!$result) { die('Error: ' . pg_last_error()); }
 
     echo '<div class="table-container"><table class="table">
@@ -70,10 +70,10 @@ if (@$_GET['q'] == 1) {
         $sahi = (int)$row['sahi'];
         $eid = htmlspecialchars($row['eid']);
 
-        $esc_email = pg_escape_string($conn, $email);
-        $esc_eid = pg_escape_string($conn, $eid);
+        $esc_email = pg_escape_string($con, $email);
+        $esc_eid = pg_escape_string($con, $eid);
 
-        $q12 = pg_query_params($conn, "SELECT score FROM history WHERE eid = $1 AND email = $2", [$esc_eid, $esc_email]);
+        $q12 = pg_query_params($con, "SELECT score FROM history WHERE eid = $1 AND email = $2", [$esc_eid, $esc_email]);
         if (!$q12) { die('Error: ' . pg_last_error()); }
 
         $rowcount = pg_num_rows($q12);
@@ -93,11 +93,11 @@ if (@$_GET['q'] == 1) {
 <!-- quiz start -->
 <?php
 if (@$_GET['q'] == 'quiz' && @$_GET['step'] == 2) {
-    $eid = pg_escape_string($conn, $_GET['eid']);
+    $eid = pg_escape_string($con, $_GET['eid']);
     $sn = (int)$_GET['n'];
     $total = (int)$_GET['t'];
 
-    $q = pg_query_params($conn, "SELECT * FROM questions WHERE eid = $1 AND sn = $2", [$eid, $sn]);
+    $q = pg_query_params($con, "SELECT * FROM questions WHERE eid = $1 AND sn = $2", [$eid, $sn]);
     if (!$q) { die('Error: ' . pg_last_error()); }
 
     echo '<div class="quiz">';
@@ -107,7 +107,7 @@ if (@$_GET['q'] == 'quiz' && @$_GET['step'] == 2) {
         echo '<p class="question" style="color: #512da8; font-size: 1.25rem; font-weight: 600; margin-bottom:10px;">Question &nbsp;'.$sn.'</p><br /><p class="quest-r" style="color: #000; font-size: 1.2rem; font-weight: 600;">&nbsp'.$qns.'</p><br /><br />';
     }
 
-    $q_opts = pg_query_params($conn, "SELECT * FROM options WHERE qid = $1", [$qid]);
+    $q_opts = pg_query_params($con, "SELECT * FROM options WHERE qid = $1", [$qid]);
     if (!$q_opts) { die('Error: ' . pg_last_error()); }
 
     echo '<form class="q-form" action="update.php?q=quiz&step=2&eid='.$eid.'&n='.$sn.'&t='.$total.'&qid='.$qid.'" method="POST" style="font-size: 1rem; font-weight: 550; margin: 0 15px 0 5px;">
@@ -123,10 +123,10 @@ if (@$_GET['q'] == 'quiz' && @$_GET['step'] == 2) {
 
 // result display
 if (@$_GET['q'] == 'result' && @$_GET['eid']) {
-    $eid = pg_escape_string($conn, $_GET['eid']);
-    $esc_email = pg_escape_string($conn, $email);
+    $eid = pg_escape_string($con, $_GET['eid']);
+    $esc_email = pg_escape_string($con, $email);
 
-    $q = pg_query_params($conn, "SELECT * FROM history WHERE eid = $1 AND email = $2", [$eid, $esc_email]);
+    $q = pg_query_params($con, "SELECT * FROM history WHERE eid = $1 AND email = $2", [$eid, $esc_email]);
     if (!$q) { die('Error: ' . pg_last_error()); }
 
     echo '<div class="table-container">
@@ -144,7 +144,7 @@ if (@$_GET['q'] == 'result' && @$_GET['eid']) {
               <tr style="color: #512da8; font-size: 1rem; font-weight: 550;"><td>Score</td><td>'.$s.'</td></tr>';
     }
 
-    $q_rank = pg_query_params($conn, "SELECT * FROM rank WHERE email = $1", [$esc_email]);
+    $q_rank = pg_query_params($con, "SELECT * FROM rank WHERE email = $1", [$esc_email]);
     if (!$q_rank) { die('Error: ' . pg_last_error()); }
 
     while ($row = pg_fetch_assoc($q_rank)) {
@@ -160,8 +160,8 @@ if (@$_GET['q'] == 'result' && @$_GET['eid']) {
 <?php
 // history start
 if (@$_GET['q'] == 2) {
-    $esc_email = pg_escape_string($conn, $email);
-    $q = pg_query_params($conn, "SELECT * FROM history WHERE email = $1 ORDER BY date DESC", [$esc_email]);
+    $esc_email = pg_escape_string($con, $email);
+    $q = pg_query_params($con, "SELECT * FROM history WHERE email = $1 ORDER BY date DESC", [$esc_email]);
     if (!$q) { die('Error: ' . pg_last_error()); }
 
     echo '<div class="table-container"><table class="table">
@@ -176,7 +176,7 @@ if (@$_GET['q'] == 2) {
         $level = (int)$row['level'];
         $date = htmlspecialchars($row['date']);
 
-        $q1 = pg_query_params($conn, "SELECT title FROM quiz WHERE eid = $1", [$eid]);
+        $q1 = pg_query_params($con, "SELECT title FROM quiz WHERE eid = $1", [$eid]);
         if (!$q1) { die('Error: ' . pg_last_error()); }
 
         $title = '';
@@ -192,7 +192,7 @@ if (@$_GET['q'] == 2) {
 
 // ranking start
 if (@$_GET['q'] == 3) {
-    $q = pg_query($conn, "SELECT * FROM rank ORDER BY score DESC");
+    $q = pg_query($con, "SELECT * FROM rank ORDER BY score DESC");
     if (!$q) { die('Error: ' . pg_last_error()); }
 
     echo '<div class="table-container"><table class="table">
