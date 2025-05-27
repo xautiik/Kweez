@@ -123,6 +123,79 @@ if (@$_GET['q'] == 1) {
 }
 ?>
 
+<!-- Create Quiz -->
+<?php if (@$_GET['q'] == 4 && !isset($_GET['step'])): ?>
+<div class="quiz-container">
+  <span class="q-title"><b>Create Quiz</b></span><br /><br />
+  <form class="quiz-maker" action="update.php?q=addquiz" method="POST">
+    <input name="name" placeholder="Enter Quiz title" class="input" type="text" required>
+    <input name="total" placeholder="Total number of questions" class="input" type="number" required>
+    <input name="right" placeholder="Marks for right answer" class="input" type="number" min="0" required>
+    <input name="wrong" placeholder="Minus marks (no sign)" class="input" type="number" min="0" required>
+    <textarea class="tarea" name="desc" rows="6" placeholder="Write description here..."></textarea>
+    <button type="submit" class="qm-button">Submit</button>
+  </form>
+</div>
+<?php endif; ?>
+
+<!-- Add Questions -->
+<?php if (@$_GET['q'] == 4 && @$_GET['step'] == 2): ?>
+<div class="quiz-container">
+  <span class="q-title"><b>Add Questions</b></span><br /><br />
+  <form class="quiz-maker" action="update.php?q=addqns&n=<?= $_GET['n'] ?>&eid=<?= $_GET['eid'] ?>&ch=4" method="POST">
+    <?php for ($i = 1; $i <= $_GET['n']; $i++): ?>
+      <label><b>Question <?= $i ?>:</b></label><br />
+      <textarea name="qns<?= $i ?>" class="tarea" rows="3" placeholder="Enter Question <?= $i ?>"></textarea>
+      <input name="<?= $i ?>1" placeholder="Option 1" class="input" type="text">
+      <input name="<?= $i ?>2" placeholder="Option 2" class="input" type="text">
+      <input name="<?= $i ?>3" placeholder="Option 3" class="input" type="text">
+      <input name="<?= $i ?>4" placeholder="Option 4" class="input" type="text">
+      <label>Answer:</label>
+      <select name="ans<?= $i ?>" class="select">
+        <option value="">Select</option>
+        <option value="a">Option 1</option>
+        <option value="b">Option 2</option>
+        <option value="c">Option 3</option>
+        <option value="d">Option 4</option>
+      </select><br><br>
+    <?php endfor; ?>
+    <button type="submit" class="qm-button">Submit</button>
+  </form>
+</div>
+<?php endif; ?>
+
+<!-- Remove Quiz -->
+<?php if (@$_GET['q'] == 5):
+    try {
+        $stmt = $pdo->query("SELECT * FROM quiz ORDER BY date DESC");
+        $quizzes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        echo "<p>Error: " . $e->getMessage() . "</p>";
+        $quizzes = [];
+    }
+?>
+<div class="table-container">
+  <table class="table">
+    <tr><th>No.</th><th>Quiz</th><th>Total Questions</th><th>Marks</th><th></th></tr>
+    <?php $c = 1;
+    foreach ($quizzes as $quiz):
+      $title = $quiz['title'];
+      $total = $quiz['total'];
+      $sahi = $quiz['sahi'];
+      $eid = $quiz['eid'];
+    ?>
+    <tr>
+      <td><?= $c++ ?></td>
+      <td><?= htmlspecialchars($title) ?></td>
+      <td><?= $total ?></td>
+      <td><?= $sahi * $total ?></td>
+      <td><a href="update.php?q=rmquiz&eid=<?= $eid ?>"><span class="remove"><b>Remove</b></span></a></td>
+    </tr>
+    <?php endforeach; ?>
+  </table>
+</div>
+<?php endif; ?>    
+
 </div> <!-- main-container end -->
 
 </body>
