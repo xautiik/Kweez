@@ -167,7 +167,7 @@ if (@$_GET['q'] == 1) {
 <!-- Remove Quiz -->
 <?php if (@$_GET['q'] == 5):
     try {
-        $stmt = $pdo->query("SELECT * FROM quiz ORDER BY date DESC");
+        $stmt = $con->query("SELECT * FROM quiz ORDER BY date DESC");
         $quizzes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         echo "<p>Error: " . $e->getMessage() . "</p>";
