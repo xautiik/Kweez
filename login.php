@@ -1,28 +1,37 @@
 <?php
 session_start();
-if(isset($_SESSION["email"])){
-session_destroy();
+
+if (isset($_SESSION["email"])) {
+    session_destroy();
 }
-include_once 'dbConnection.php';
-$ref=@$_GET['q'];
-$email = $_POST['email'];
+
+include_once 'dbConnection.php'; 
+$ref = @$_GET['q'];
+$email = trim($_POST['email']);
 $password = $_POST['password'];
 
-$email = stripslashes($email);
-$email = addslashes($email);
-$password = stripslashes($password); 
-$password = addslashes($password);
-$password=md5($password); 
-$result = mysqli_query($con,"SELECT name FROM user WHERE email = '$email' and password = '$password'") or die('Error');
-$count=mysqli_num_rows($result);
-if($count==1){
-while($row = mysqli_fetch_array($result)) {
-	$name = $row['name'];
+$conn = pg_connect("host=localhost dbname=your_db user=your_user password=your_password");
+if (!$conn) {
+    die("Error in connection: " . pg_last_error());
 }
-$_SESSION["name"] = $name;
-$_SESSION["email"] = $email;
-header("location:profile.php?q=1");
+
+$result = pg_query_params($conn, "SELECT name, password FROM user WHERE email = $1", array($email));
+
+if (pg_num_rows($result) == 1) {
+    $row = pg_fetch_assoc($result);
+    if (password_verify($password, $row['password'])) {
+        $_SESSION["name"] = $row['name'];
+        $_SESSION["email"] = $email;
+        header("location: profile.php?q=1");
+        exit();
+    } else {
+        header("location: $ref?w=Wrong Username or Password");
+        exit();
+    }
+} else {
+    header("location: $ref?w=Wrong Username or Password");
+    exit();
 }
-else
-header("location:$ref?w=Wrong Username or Password");
+
+pg_close($conn);
 ?>
