@@ -2,15 +2,15 @@
 session_start();
 include_once 'dbConnection.php';
 
-// Safely access session values with fallback
-$email = $_SESSION['email'] ?? '';
-$name = $_SESSION['name'] ?? '';
-
-if (empty($email)) {
+if (!isset($_SESSION['email']) || !isset($_SESSION['name'])) {
     header("Location: index.php");
     exit();
 }
+
+$email = $_SESSION['email'];
+$name = $_SESSION['name'];
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
