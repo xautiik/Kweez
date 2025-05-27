@@ -1,161 +1,82 @@
--- phpMyAdmin SQL Dump
--- version 4.6.4
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Server version: 5.7.14
--- PHP Version: 5.6.25
+-- Database: quiz
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
+-- Table structure for table admin
 
+CREATE TABLE admin (
+  admin_id SERIAL PRIMARY KEY,
+  email VARCHAR(50) NOT NULL,
+  password VARCHAR(500) NOT NULL
+);
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+-- Dumping data for table admin
 
---
--- Database: `quiz`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `admin`
---
-
-CREATE TABLE `admin` (
-  `admin_id` int(11) NOT NULL,
-  `email` varchar(50) NOT NULL,
-  `password` varchar(500) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `admin`
---
-
-INSERT INTO `admin` (`admin_id`, `email`, `password`) VALUES
+INSERT INTO admin (admin_id, email, password) VALUES
 (1, 'admin@kweez.com', 'admin');
 
--- --------------------------------------------------------
+-- Table structure for table answer
 
---
--- Table structure for table `answer`
---
+CREATE TABLE answer (
+  qid TEXT NOT NULL,
+  ansid TEXT NOT NULL
+);
 
-CREATE TABLE `answer` (
-  `qid` text NOT NULL,
-  `ansid` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- Table structure for table history
 
--- --------------------------------------------------------
---
--- Table structure for table `history`
---
+CREATE TABLE history (
+  email VARCHAR(50) NOT NULL,
+  eid TEXT NOT NULL,
+  score INTEGER NOT NULL,
+  level INTEGER NOT NULL,
+  sahi INTEGER NOT NULL,
+  wrong INTEGER NOT NULL,
+  date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
-CREATE TABLE `history` (
-  `email` varchar(50) NOT NULL,
-  `eid` text NOT NULL,
-  `score` int(11) NOT NULL,
-  `level` int(11) NOT NULL,
-  `sahi` int(11) NOT NULL,
-  `wrong` int(11) NOT NULL,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- Table structure for table options
 
--- --------------------------------------------------------
+CREATE TABLE options (
+  qid VARCHAR(50) NOT NULL,
+  option VARCHAR(5000) NOT NULL,
+  optionid TEXT NOT NULL
+);
 
---
--- Table structure for table `options`
---
+-- Table structure for table questions
 
-CREATE TABLE `options` (
-  `qid` varchar(50) NOT NULL,
-  `option` varchar(5000) NOT NULL,
-  `optionid` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE questions (
+  eid TEXT NOT NULL,
+  qid TEXT NOT NULL,
+  qns TEXT NOT NULL,
+  choice INTEGER NOT NULL,
+  sn INTEGER NOT NULL
+);
 
--- --------------------------------------------------------
+-- Table structure for table quiz
 
---
--- Table structure for table `questions`
---
+CREATE TABLE quiz (
+  eid TEXT NOT NULL,
+  title VARCHAR(100) NOT NULL,
+  sahi INTEGER NOT NULL,
+  wrong INTEGER NOT NULL,
+  total INTEGER NOT NULL,
+  time BIGINT NOT NULL,
+  intro TEXT NOT NULL,
+  tag VARCHAR(100) NOT NULL,
+  date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
-CREATE TABLE `questions` (
-  `eid` text NOT NULL,
-  `qid` text NOT NULL,
-  `qns` text NOT NULL,
-  `choice` int(10) NOT NULL,
-  `sn` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- Table structure for table rank
 
--- --------------------------------------------------------
+CREATE TABLE rank (
+  email VARCHAR(50) NOT NULL,
+  score INTEGER NOT NULL,
+  time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
---
--- Table structure for table `quiz`
---
+-- Table structure for table user
+-- Note: user is a reserved keyword, so we quote it here
 
-CREATE TABLE `quiz` (
-  `eid` text NOT NULL,
-  `title` varchar(100) NOT NULL,
-  `sahi` int(11) NOT NULL,
-  `wrong` int(11) NOT NULL,
-  `total` int(11) NOT NULL,
-  `time` bigint(20) NOT NULL,
-  `intro` text NOT NULL,
-  `tag` varchar(100) NOT NULL,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `rank`
---
-
-CREATE TABLE `rank` (
-  `email` varchar(50) NOT NULL,
-  `score` int(11) NOT NULL,
-  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `user`
---
-
-CREATE TABLE `user` (
-  `name` varchar(50) NOT NULL,
-  `email` varchar(50) NOT NULL,
-  `password` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Indexes for dumped tables
---
-
---
--- Indexes for table `admin`
---
-ALTER TABLE `admin`
-  ADD PRIMARY KEY (`admin_id`);
-
---
--- Indexes for table `user`
---
-ALTER TABLE `user`
-  ADD PRIMARY KEY (`email`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `admin`
---
-ALTER TABLE `admin`
-  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+CREATE TABLE "user" (
+  name VARCHAR(50) NOT NULL,
+  email VARCHAR(50) NOT NULL PRIMARY KEY,
+  password VARCHAR(50) NOT NULL
+);
